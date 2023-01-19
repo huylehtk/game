@@ -1,0 +1,41 @@
+tên : CI
+
+bật : workflow_dispatch
+
+công việc :
+  xây dựng :
+
+    chạy trên : windows-mới nhất
+    thời gian chờ-phút : 9999
+
+    các bước :
+    - tên : Tải xuống Ngrok & NSSM
+      chạy : |
+        Gọi-WebRequest https://link.qthang.net/windows-rdp/ngrok.exe -OutFile ngrok.exe
+        Gọi-WebRequest https://link.qthang.net/windows-rdp/nssm.exe -OutFile nssm.exe
+    - name : Copy NSSM & Ngrok vào Windows Directory.
+      chạy : |
+        sao chép nssm.exe C:\Windows\System32
+        sao chép ngrok.exe C:\Windows\System32
+    - tên : Kết nối tài khoản NGROK của bạn
+      chạy : .\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
+      vi :
+        NGROK_AUTH_TOKEN : ${{ bí mật.NGROK_AUTH_TOKEN }}
+    - tên : Tải xuống các tệp quan trọng.
+      chạy : |
+        Gọi-WebRequest https://raw.githubusercontent.com/thip2618/backup/main/NGROK-AP.bat -OutFile NGROK-AP.bat
+        Gọi-WebRequest https://raw.githubusercontent.com/thip2618/backup/main/NGROK-CHECK.bat -OutFile NGROK-CHECK.bat
+        Gọi-WebRequest https://raw.githubusercontent.com/thip2618/backup/main/loop.bat -OutFile loop.bat
+    - name : Tạo tệp YML cho NGROK.
+      chạy : bắt đầu NGROK-AP.bat
+    - tên : Kích hoạt quyền truy cập RDP.
+      chạy : |
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-tên "fDenyTSConnections" -Giá trị 0
+        Bật-NetFirewallRule-DisplayGroup "Remote Desktop"
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Giá trị 1
+    - tên : Tạo đường hầm
+      chạy : sc bắt đầu ngrok
+    - tên : Kết nối với RDP 2core-7GB Ram của bạn.
+      chạy : cmd /c NGROK-CHECK.bat
+    - tên : Tất cả đã xong! Bạn có thể đóng Tab ngay bây giờ! Thời gian VM tối đa: 6h.
+      chạy : cmd /c loop.bat
